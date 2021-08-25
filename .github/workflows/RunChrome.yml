@@ -1,0 +1,43 @@
+name: Run Chrome
+
+on:
+  workflow_dispatch:
+    inputs:
+      frps-host:
+        description: 'frps host'
+        required: true
+      frps-port:
+        description: 'frps port'
+        required: true
+      frps-token:
+        description: 'frps token'
+        required: true
+      authcode:
+        description: 'Enter CRD code'
+        required: false
+      pincode:
+        description: 'Six digit Pin'
+        required: false
+      runtime:
+        description: 'Run second time required'
+        required: true
+      
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image and run chrome
+      run: |
+        echo '${{ github.event.inputs.authcode }} -pin="${{ github.event.inputs.pincode }}" --user-name="chrome"'>>tools/setup
+        echo 'mv `ls -t /home/chrome/.config/chrome-remote-desktop/host#*.json | head -n 1` /home/chrome/.config/chrome-remote-desktop/~host.json' >>tools/setup
+        sed -i "s/x_frps_host/${{ github.event.inputs.frps-host }}/" Dockerfile.action
+        sed -i "s/x_frps_port/${{ github.event.inputs.frps-port }}/" Dockerfile.action
+        sed -i "s/x_frps_token/${{ github.event.inputs.frps-token }}/" Dockerfile.action
+        docker build . --file Dockerfile.action --tag chrome:1.0
+        docker run -d chrome:1.0
+        duration=0
+        while true ; do sleep 1 ; duration=$(( $duration + 1 )) ; echo "$duration s" ; if [[ $duration -gt ${{ github.event.inputs.runtime }} ]] ; then break ; fi ; done
