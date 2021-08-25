@@ -23,14 +23,11 @@ on:
         required: true
       
 jobs:
-
   build:
-
     runs-on: self-hosted
-
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image and run chrome
+    - name: Build the Docker image
       run: |
         echo '${{ github.event.inputs.authcode }} -pin="${{ github.event.inputs.pincode }}" --user-name="chrome"'>>tools/setup
         echo 'mv `ls -t /home/chrome/.config/chrome-remote-desktop/host#*.json | head -n 1` /home/chrome/.config/chrome-remote-desktop/~host.json' >>tools/setup
@@ -38,6 +35,15 @@ jobs:
         sed -i "s/x_frps_port/${{ github.event.inputs.frps-port }}/" Dockerfile.action
         sed -i "s/x_frps_token/${{ github.event.inputs.frps-token }}/" Dockerfile.action
         docker build . --file Dockerfile.action --tag chrome:1.0
+    - name: Run Chrome
+      run: |
         docker run -d chrome:1.0
         duration=0
-        while true ; do sleep 1 ; duration=$(( $duration + 1 )) ; echo "$duration s" ; if [[ $duration -gt ${{ github.event.inputs.runtime }} ]] ; then break ; fi ; done
+        while true ; do 
+          sleep 1 ; 
+          duration=$(( $duration + 1 )) ;
+          echo "$duration s" ; 
+          if [[ $duration -gt ${{ github.event.inputs.runtime }} ]] ; then 
+            break ;
+          fi ; 
+          done
