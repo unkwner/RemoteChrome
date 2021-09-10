@@ -39,11 +39,10 @@ RUN apt-key add /tmp/linux_signing_key.pub \
 	|| apt-get -f --yes install
 	#|| dpkg -i /tmp/chrome-remote-desktop_current_amd64.deb \
 
-#&& useradd -m -G chrome-remote-desktop,pulse-access chrome \
 RUN apt-get clean \
 	&& rm -rf /var/cache/* /var/log/apt/* /var/lib/apt/lists/* /tmp/* \
+	&& useradd -m -G chrome-remote-desktop,pulse-access chrome \
 	&& groupadd chrome-remote-desktop \
-	&& useradd -m -G pulse-access chrome \
 	&& usermod -s /bin/bash chrome \
 	&& ln -s /chrome /usr/local/sbin/chrome \
 	&& ln -s /update /usr/local/sbin/update \
