@@ -1,0 +1,53 @@
+FROM ubuntu
+#####US
+#Alaska    Arizona  East-Indiana  Hawaii          Michigan  Pacific
+#Aleutian  Central  Eastern       Indiana-Starke  Mountain  Samoa
+#####US
+ARG frps_host=x_frps_host
+ARG frps_port=x_frps_port
+ARG frps_token=x_frps_token
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TimeZone=US/Eastern
+RUN ln -snf /usr/share/zoneinfo/$TimeZone /etc/localtime && echo $TimeZone > /etc/timezone
+
+RUN apt update \
+    && apt-get install -y --no-install-recommends x11vnc xvfb fluxbox gnupg2 fonts-noto-cjk sudo eterm psmisc lightdm-gtk-greeter xfce4-terminal
+
+COPY tools/frp /frp
+
+ADD https://dl.google.com/linux/linux_signing_key.pub \
+    https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    /tmp/
+
+RUN apt-key add /tmp/linux_signing_key.pub \
+    && dpkg -i /tmp/google-chrome-stable_current_amd64.deb \
+    || apt-get -f --yes install \
+    && apt-get clean \
+    && rm -rf /var/cache/* /var/log/apt/* /var/lib/apt/lists/* /tmp/*
+
+RUN useradd -m chrome \
+    && usermod -s /bin/bash chrome \
+    && mkdir -p /home/chrome/.config \
+    && mkdir -p /home/chrome/.fluxbox \
+    && chown -R chrome:chrome /home/chrome/.config /home/chrome/.fluxbox
+
+RUN echo -e "export CHROME_OPTS=\"${CHROME_OPTS_OVERRIDE:- --user-data-dir --no-sandbox --window-position=0,0 --force-device-scale-factor=1 --disable-dev-shm-usage}\"" >>/usr/local/sbin/chrome \
+    && echo "rm -rf /home/chrome/.config/*" >>/usr/local/sbin/chrome \
+    && echo "exec /opt/google/chrome/chrome --no-sandbox --start-maximized --force-device-scale-factor=1 --use-system-title-bar ${CHROME_OPTS}" >>/usr/local/sbin/chrome \
+    && chmod a+x /usr/local/sbin/chrome
+
+RUN frpc_user=`date +%s%N | md5sum |cut -c 1-9` && \
+    sed -i "s/server_addr = 127.0.0.1/server_addr = $frps_host/" /frp/frpc.ini && \
+    sed -i "s/server_port = 7000/server_port = $frps_port/" /frp/frpc.ini && \
+    sed -i "s/token = 123456/token = $frps_token/" /frp/frpc.ini && \
+    sed -i "s/ssh/$frpc_user/" /frp/frpc.ini
+
+RUN echo "nohup /frp/frpc -c /frp/frpc.ini &" >/entrypoint.sh \
+    && echo "x11vnc -create -env FD_PROG=/usr/bin/fluxbox -env X11VNC_FINDDISPLAY_ALWAYS_FAILS=1 -env X11VNC_CREATE_GEOM=${1:-1024x768x16} -gone 'killall Xvfb' -forever -loop -bg -nopw" >>/entrypoint.sh \
+    && echo "tail -f /nohup.out" >>/entrypoint.sh \
+    && chmod +x /entrypoint.sh
+
+EXPOSE 5900
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+CMD ["/entrypoint.sh"]
