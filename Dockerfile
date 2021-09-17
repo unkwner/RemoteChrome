@@ -4,12 +4,20 @@ LABEL maintainer="xxx xxx <xxx@gmail.com>"
 
 ENV VNC_SCREEN_SIZE 1024x768
 
-ARG frps_host=xxxxxx
-ARG frps_port=10080
-ARG frps_token=xxxxxx
-ARG user=chrome
+ARG frps_host=x_frps_host
+ARG frps_port=x_frps_port
+ARG frps_token=x_frps_token
 
 COPY tools /
+
+#####US
+#Alaska    Arizona  East-Indiana  Hawaii          Michigan  Pacific
+#Aleutian  Central  Eastern       Indiana-Starke  Mountain  Samoa
+#####US
+
+ENV TimeZone=US/Eastern
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TimeZone /etc/localtime && echo $TimeZone > /etc/timezone
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
@@ -49,10 +57,11 @@ RUN apt-get clean \
 	' >> /home/chrome/.fluxbox/init \
 	&& chown -R chrome:chrome /home/chrome/.config /home/chrome/.fluxbox
 
-RUN sed -i "s/server_addr = 127.0.0.1/server_addr = $frps_host/" /frp/frpc.ini && \
+RUN frpc_user=`date +%s%N | md5sum |cut -c 1-9` && \
+    sed -i "s/server_addr = 127.0.0.1/server_addr = $frps_host/" /frp/frpc.ini && \
     sed -i "s/server_port = 7000/server_port = $frps_port/" /frp/frpc.ini && \
     sed -i "s/token = 123456/token = $frps_token/" /frp/frpc.ini && \
-    sed -i "s/ssh/$user/" /frp/frpc.ini
+    sed -i "s/ssh/$frpc_user/" /frp/frpc.ini
 
 VOLUME ["/home/chrome"]
 
