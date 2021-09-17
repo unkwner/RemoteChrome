@@ -29,6 +29,7 @@ ADD https://dl.google.com/linux/linux_signing_key.pub \
 RUN apt-key add /tmp/linux_signing_key.pub \
 	&& dpkg -i /tmp/google-chrome-stable_current_amd64.deb \
 	|| dpkg -i /tmp/chrome-remote-desktop_current_amd64.deb \
+	|| apt-get update \
 	|| apt-get -f --yes install
 
 RUN apt-get clean \
