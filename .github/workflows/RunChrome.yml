@@ -34,7 +34,7 @@ jobs:
         sed -i "s/x_frps_host/${{ github.event.inputs.frps-host }}/" Dockerfile.action
         sed -i "s/x_frps_port/${{ github.event.inputs.frps-port }}/" Dockerfile.action
         sed -i "s/x_frps_token/${{ github.event.inputs.frps-token }}/" Dockerfile.action
-        docker build . --file Dockerfile.action --tag chrome:1.0
+        docker build . --file Dockerfile --tag chrome:1.0
     - name: Run Chrome
       run: |
         docker run -d chrome:1.0
