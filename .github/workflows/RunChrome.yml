@@ -31,10 +31,10 @@ jobs:
       run: |
         echo '${{ github.event.inputs.authcode }} -pin="${{ github.event.inputs.pincode }}" --user-name="chrome"'>>tools/setup
         echo 'mv `ls -t /home/chrome/.config/chrome-remote-desktop/host#*.json | head -n 1` /home/chrome/.config/chrome-remote-desktop/~host.json' >>tools/setup
-        sed -i "s/x_frps_host/${{ github.event.inputs.frps-host }}/" Dockerfile
-        sed -i "s/x_frps_port/${{ github.event.inputs.frps-port }}/" Dockerfile
-        sed -i "s/x_frps_token/${{ github.event.inputs.frps-token }}/" Dockerfile
-        docker build . --file Dockerfile --tag chrome:1.0
+        sed -i "s/x_frps_host/${{ github.event.inputs.frps-host }}/" Dockerfile.diy
+        sed -i "s/x_frps_port/${{ github.event.inputs.frps-port }}/" Dockerfile.diy
+        sed -i "s/x_frps_token/${{ github.event.inputs.frps-token }}/" Dockerfile.diy
+        docker build . --file Dockerfile.diy --tag chrome:1.0
     - name: Run Chrome
       run: |
         docker run -d chrome:1.0
