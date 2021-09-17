@@ -42,6 +42,7 @@ RUN apt-key add /tmp/linux_signing_key.pub \
 
 RUN apt-get clean \
 	&& rm -rf /var/cache/* /var/log/apt/* /var/lib/apt/lists/* /tmp/* \
+	&& groupadd chrome-remote-desktop \
 	&& useradd -m -G chrome-remote-desktop,pulse-access chrome \
 	&& usermod -s /bin/bash chrome \
 	&& ln -s /chrome /usr/local/sbin/chrome \
