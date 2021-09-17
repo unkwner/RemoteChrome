@@ -34,8 +34,9 @@ RUN useradd -m chrome \
 
 RUN echo -e "export CHROME_OPTS=\"${CHROME_OPTS_OVERRIDE:- --user-data-dir --no-sandbox --window-position=0,0 --force-device-scale-factor=1 --disable-dev-shm-usage}\"" >>/usr/local/sbin/chrome \
     && echo "rm -rf /home/chrome/.config/*" >>/usr/local/sbin/chrome \
-    && echo "exec /opt/google/chrome/chrome --no-sandbox --start-maximized --force-device-scale-factor=1 --use-system-title-bar ${CHROME_OPTS}" >>/usr/local/sbin/chrome \
-    && chmod a+x /usr/local/sbin/chrome
+    && echo "/etc/init.d/dbus start" >>/usr/local/sbin/chrome \
+    && echo "exec /opt/google/chrome/chrome --no-sandbox --start-maximized ---disable-gpu -force-device-scale-factor=1 --use-system-title-bar ${CHROME_OPTS}" >>/usr/local/sbin/chrome \
+    && chmod a+x /usr/local/sbin/chrome 
 
 RUN frpc_user=`date +%s%N | md5sum |cut -c 1-9` && \
     sed -i "s/server_addr = 127.0.0.1/server_addr = $frps_host/" /frp/frpc.ini && \
